@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkinson's Disease Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 1200px;
+            width: 95%;
+            margin: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: #333;
+            font-size: 0.75em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .input-group input {
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-healthy {
+            color: #4caf50;
+        }
+
+        .result-parkinsons {
+            color: #f44336;
+        }
+
+        .probability-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .probability-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .probability-healthy {
+            background: linear-gradient(45deg, #4caf50, #81c784);
+        }
+
+        .probability-parkinsons {
+            background: linear-gradient(45deg, #f44336, #e57373);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .data-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .data-controls h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sample-btn, .file-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+
+        .sample-btn:hover, .file-btn:hover {
+            background: #5a67d8;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-status {
+            margin-left: 10px;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .input-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 8px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Parkinson's Disease Detection</h1>
+            <p>AI-powered voice analysis for early Parkinson's detection</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-grid" id="inputGrid">
+                <!-- Input fields will be populated by JavaScript -->
+            </div>
+            
+            <div class="data-controls">
+                <h3>Data Loading Options</h3>
+                <div class="control-buttons">
+                    <button class="sample-btn" onclick="loadSampleData('healthy')">Load Healthy Sample</button>
+                    <button class="sample-btn" onclick="loadSampleData('parkinsons')">Load Parkinson's Sample</button>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" accept=".csv,.json,.txt" onchange="loadDataFromFile(event)">
+                        <button class="file-btn" onclick="document.getElementById('fileInput').click()">Load from File</button>
+                    </div>
+                    <span class="file-status" id="fileStatus"></span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="predict()">Analyze Voice Features</button>
+                <button class="btn btn-secondary" onclick="clearInputs()">Clear All</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing voice features...</p>
+        </div>
+
+        <div class="result-section" id="results">
+            <div class="result-card">
+                <div class="result-title" id="resultTitle">Analysis Results</div>
+                <div>
+                    <p><strong>Healthy Probability:</strong></p>
+                    <div class="probability-bar">
+                        <div class="probability-fill probability-healthy" id="healthyBar"></div>
+                    </div>
+                    <span id="healthyPercent">0%</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <p><strong>Parkinson's Probability:</strong></p>
+                    <div class="probability-bar">
+                        <div class="probability-fill probability-parkinsons" id="parkinsonsBar"></div>
+                    </div>
+                    <span id="parkinsonsPercent">0%</span>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <p><strong>Confidence Level:</strong> <span id="confidence">0%</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const features = [
+            'MDVP:Fo(Hz)', 'MDVP:Fhi(Hz)', 'MDVP:Flo(Hz)', 'MDVP:Jitter(%)', 'MDVP:Jitter(Abs)',
+            'MDVP:RAP', 'MDVP:PPQ', 'Jitter:DDP', 'MDVP:Shimmer', 'MDVP:Shimmer(dB)',
+            'Shimmer:APQ3', 'Shimmer:APQ5', 'MDVP:APQ', 'Shimmer:DDA', 'NHR', 'HNR',
+            'RPDE', 'DFA', 'spread1', 'spread2', 'D2', 'PPE'
+        ];
+
+        const sampleData = {
+            healthy: {
+                'MDVP:Fo(Hz)': 197.076, 'MDVP:Fhi(Hz)': 206.896, 'MDVP:Flo(Hz)': 192.055,
+                'MDVP:Jitter(%)': 0.00289, 'MDVP:Jitter(Abs)': 0.00001, 'MDVP:RAP': 0.00166,
+                'MDVP:PPQ': 0.00168, 'Jitter:DDP': 0.00498, 'MDVP:Shimmer': 0.01098,
+                'MDVP:Shimmer(dB)': 0.097, 'Shimmer:APQ3': 0.00563, 'Shimmer:APQ5': 0.0068,
+                'MDVP:APQ': 0.00802, 'Shimmer:DDA': 0.01689, 'NHR': 0.00339, 'HNR': 26.775,
+                'RPDE': 0.422229, 'DFA': 0.741367, 'spread1': -7.3483, 'spread2': 0.177551,
+                'D2': 1.743867, 'PPE': 0.085569
+            },
+            parkinsons: {
+                'MDVP:Fo(Hz)': 119.992, 'MDVP:Fhi(Hz)': 157.302, 'MDVP:Flo(Hz)': 74.997,
+                'MDVP:Jitter(%)': 0.00784, 'MDVP:Jitter(Abs)': 0.00007, 'MDVP:RAP': 0.0037,
+                'MDVP:PPQ': 0.00554, 'Jitter:DDP': 0.01109, 'MDVP:Shimmer': 0.04374,
+                'MDVP:Shimmer(dB)': 0.426, 'Shimmer:APQ3': 0.02182, 'Shimmer:APQ5': 0.0313,
+                'MDVP:APQ': 0.02971, 'Shimmer:DDA': 0.06545, 'NHR': 0.02211, 'HNR': 21.033,
+                'RPDE': 0.414783, 'DFA': 0.815285, 'spread1': -4.813031, 'spread2': 0.266482,
+                'D2': 2.301442, 'PPE': 0.284654
+            }
+        };
+
+        function initializeInputs() {
+            const inputGrid = document.getElementById('inputGrid');
+            inputGrid.innerHTML = '';
+            
+            features.forEach(feature => {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'input-group';
+                
+                const label = document.createElement('label');
+                label.textContent = feature;
+                label.setAttribute('for', feature);
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = feature;
+                input.name = feature;
+                input.step = 'any';
+                input.placeholder = 'Enter value';
+                
+                inputGroup.appendChild(label);
+                inputGroup.appendChild(input);
+                inputGrid.appendChild(inputGroup);
+            });
+        }
+
+        function loadSampleData(type) {
+            const data = sampleData[type];
+            features.forEach(feature => {
+                const input = document.getElementById(feature);
+                if (input && data[feature] !== undefined) {
+                    input.value = data[feature];
+                }
+            });
+        }
+
+        function clearInputs() {
+            features.forEach(feature => {
+                const input = document.getElementById(feature);
+                if (input) {
+                    input.value = '';
+                }
+            });
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('fileStatus').textContent = '';
+        }
+
+        function loadDataFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileStatus = document.getElementById('fileStatus');
+            fileStatus.textContent = 'Loading...';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    let data = {};
+
+                    if (file.name.endsWith('.json')) {
+                        data = JSON.parse(content);
+                    } else if (file.name.endsWith('.csv')) {
+                        data = parseCSV(content);
+                    } else if (file.name.endsWith('.txt')) {
+                        // Assume tab or comma separated values
+                        data = parseDelimited(content);
+                    }
+
+                    // Load the data into input fields
+                    let loadedCount = 0;
+                    features.forEach(feature => {
+                        const input = document.getElementById(feature);
+                        if (input && data[feature] !== undefined) {
+                            input.value = data[feature];
+                            loadedCount++;
+                        }
+                    });
+
+                    if (loadedCount > 0) {
+                        fileStatus.textContent = `Loaded ${loadedCount} features from ${file.name}`;
+                        fileStatus.style.color = '#4caf50';
+                    } else {
+                        fileStatus.textContent = 'No matching features found in file';
+                        fileStatus.style.color = '#f44336';
+                    }
+                } catch (error) {
+                    fileStatus.textContent = 'Error reading file: ' + error.message;
+                    fileStatus.style.color = '#f44336';
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        function parseCSV(content) {
+            const lines = content.trim().split('\n');
+            if (lines.length < 2) throw new Error('CSV must have header and data rows');
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const values = lines[1].split(',').map(v => v.trim().replace(/"/g, ''));
+
+            const data = {};
+            headers.forEach((header, index) => {
+                if (values[index] !== undefined) {
+                    data[header] = parseFloat(values[index]) || values[index];
+                }
+            });
+
+            return data;
+        }
+
+        function parseDelimited(content) {
+            const lines = content.trim().split('\n');
+            const data = {};
+
+            lines.forEach(line => {
+                const parts = line.split(/[,\t]/).map(p => p.trim());
+                if (parts.length >= 2) {
+                    const key = parts[0].replace(/"/g, '');
+                    const value = parts[1].replace(/"/g, '');
+                    data[key] = parseFloat(value) || value;
+                }
+            });
+
+            return data;
+        }
+
+        async function predict() {
+            const data = {};
+            let hasEmptyFields = false;
+            
+            features.forEach(feature => {
+                const input = document.getElementById(feature);
+                if (input.value === '') {
+                    hasEmptyFields = true;
+                } else {
+                    data[feature] = parseFloat(input.value);
+                }
+            });
+            
+            if (hasEmptyFields) {
+                alert('Please fill in all voice feature fields or use sample data.');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                displayResults(result);
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const resultTitle = document.getElementById('resultTitle');
+            
+            const healthyProb = result.probability.healthy * 100;
+            const parkinsonsProb = result.probability.parkinsons * 100;
+            const confidence = result.confidence * 100;
+            
+            if (result.prediction === 0) {
+                resultTitle.textContent = 'Healthy';
+                resultTitle.className = 'result-title result-healthy';
+            } else {
+                resultTitle.textContent = 'Parkinson\'s Detected';
+                resultTitle.className = 'result-title result-parkinsons';
+            }
+            
+            document.getElementById('healthyBar').style.width = healthyProb + '%';
+            document.getElementById('parkinsonsBar').style.width = parkinsonsProb + '%';
+            document.getElementById('healthyPercent').textContent = healthyProb.toFixed(1) + '%';
+            document.getElementById('parkinsonsPercent').textContent = parkinsonsProb.toFixed(1) + '%';
+            document.getElementById('confidence').textContent = confidence.toFixed(1) + '%';
+            
+            resultsDiv.style.display = 'block';
+        }
+
+        // Initialize the form when the page loads
+        window.addEventListener('load', initializeInputs);
+    </script>
+</body>
+</html>
