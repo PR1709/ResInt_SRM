@@ -19,10 +19,14 @@ app = Flask(__name__)
 
 class ParkinsonsDetector:
     def __init__(self):
-        self.models = {}
+        self.trained_models = {}
         self.scaler = StandardScaler()
-        self.best_model = None
         self.feature_names = []
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+        self.dataset_info = {}
         
     def load_data(self):
         url = "https://archive.ics.uci.edu/ml/machine-learning-databases/parkinsons/parkinsons.data"
@@ -36,103 +40,178 @@ class ParkinsonsDetector:
         y = data['status']
         self.feature_names = X.columns.tolist()
         X_scaled = self.scaler.fit_transform(X)
+        
+        # Store dataset information
+        self.dataset_info = {
+            'total_samples': len(data),
+            'healthy_samples': len(data[data['status'] == 0]),
+            'parkinsons_samples': len(data[data['status'] == 1]),
+            'features': len(self.feature_names)
+        }
+        
         return X_scaled, y
     
-    def train_models(self, X, y):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        models = {
-            'Logistic Regression': LogisticRegression(random_state=42),
+    def get_available_models(self):
+        return {
+            'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
             'Decision Tree': DecisionTreeClassifier(random_state=42),
-            'Naive Bayes': GaussianNB(),
-            'KNN': KNeighborsClassifier(),
+            'Random Forest': RandomForestClassifier(random_state=42, n_estimators=100),
             'SVM': SVC(probability=True, random_state=42),
-            'Random Forest': RandomForestClassifier(random_state=42)
+            'KNN': KNeighborsClassifier(n_neighbors=5)
         }
+    
+    def train_selected_models(self, X, y, selected_models):
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
         
+        available_models = self.get_available_models()
         results = {}
-        for name, model in models.items():
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            y_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, 'predict_proba') else y_pred
-            
-            results[name] = {
-                'model': model,
-                'accuracy': accuracy_score(y_test, y_pred),
-                'precision': precision_score(y_test, y_pred),
-                'recall': recall_score(y_test, y_pred),
-                'f1': f1_score(y_test, y_pred),
-                'auc': roc_auc_score(y_test, y_proba)
-            }
         
-        best_model_name = max(results, key=lambda x: results[x]['accuracy'])
-        self.best_model = results[best_model_name]['model']
-        self.models = results
+        for model_name in selected_models:
+            if model_name in available_models:
+                model = available_models[model_name]
+                
+                # Train the model
+                model.fit(self.X_train, self.y_train)
+                
+                # Make predictions
+                y_pred_train = model.predict(self.X_train)
+                y_pred_test = model.predict(self.X_test)
+                
+                # Get probabilities if available
+                try:
+                    y_proba_train = model.predict_proba(self.X_train)[:, 1]
+                    y_proba_test = model.predict_proba(self.X_test)[:, 1]
+                except:
+                    y_proba_train = y_pred_train
+                    y_proba_test = y_pred_test
+                
+                # Calculate metrics
+                results[model_name] = {
+                    'model': model,
+                    'train_accuracy': accuracy_score(self.y_train, y_pred_train),
+                    'test_accuracy': accuracy_score(self.y_test, y_pred_test),
+                    'train_precision': precision_score(self.y_train, y_pred_train),
+                    'test_precision': precision_score(self.y_test, y_pred_test),
+                    'train_recall': recall_score(self.y_train, y_pred_train),
+                    'test_recall': recall_score(self.y_test, y_pred_test),
+                    'train_f1': f1_score(self.y_train, y_pred_train),
+                    'test_f1': f1_score(self.y_test, y_pred_test),
+                    'train_auc': roc_auc_score(self.y_train, y_proba_train),
+                    'test_auc': roc_auc_score(self.y_test, y_proba_test)
+                }
+                
+                # Store the trained model
+                self.trained_models[model_name] = model
         
-        return results, X_test, y_test
+        return results
     
-    def hyperparameter_tuning(self, X, y):
-        param_grid = {
-            'n_neighbors': [3, 5, 7, 9, 11],
-            'weights': ['uniform', 'distance'],
-            'metric': ['euclidean', 'manhattan']
-        }
-        
-        knn = KNeighborsClassifier()
-        grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='accuracy')
-        grid_search.fit(X, y)
-        
-        self.best_model = grid_search.best_estimator_
-        return grid_search.best_params_, grid_search.best_score_
-    
-    def save_model(self, filename='parkinsons_model.pkl'):
+    def save_models(self, filename='parkinsons_models.pkl'):
         with open(filename, 'wb') as f:
-            pickle.dump({'model': self.best_model, 'scaler': self.scaler, 'features': self.feature_names}, f)
+            pickle.dump({
+                'models': self.trained_models, 
+                'scaler': self.scaler, 
+                'features': self.feature_names,
+                'dataset_info': self.dataset_info
+            }, f)
     
-    def load_model(self, filename='parkinsons_model.pkl'):
+    def load_models(self, filename='parkinsons_models.pkl'):
         if os.path.exists(filename):
             with open(filename, 'rb') as f:
                 data = pickle.load(f)
-                self.best_model = data['model']
+                self.trained_models = data.get('models', {})
                 self.scaler = data['scaler']
                 self.feature_names = data['features']
+                self.dataset_info = data.get('dataset_info', {})
             return True
         return False
     
-    def predict(self, features):
-        if self.best_model is None:
-            return None
+    def predict_with_model(self, features, model_name):
+        if model_name not in self.trained_models:
+            return None, None
+        
+        model = self.trained_models[model_name]
         features_scaled = self.scaler.transform([features])
-        prediction = self.best_model.predict(features_scaled)[0]
-        probability = self.best_model.predict_proba(features_scaled)[0] if hasattr(self.best_model, 'predict_proba') else [1-prediction, prediction]
+        prediction = model.predict(features_scaled)[0]
+        
+        try:
+            probability = model.predict_proba(features_scaled)[0]
+        except:
+            probability = [1-prediction, prediction]
+            
         return prediction, probability
 
 detector = ParkinsonsDetector()
 
-if not detector.load_model():
-    print("Training new model...")
-    data = detector.load_data()
-    X, y = detector.preprocess_data(data)
-    results, X_test, y_test = detector.train_models(X, y)
-    best_params, best_score = detector.hyperparameter_tuning(X, y)
-    detector.save_model()
-    print(f"Model trained and saved. Best accuracy: {best_score:.4f}")
+# Initialize with dataset
+print("Loading dataset...")
+data = detector.load_data()
+X, y = detector.preprocess_data(data)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/models')
+def get_available_models():
+    models = list(detector.get_available_models().keys())
+    return jsonify({'models': models})
+
+@app.route('/train', methods=['POST'])
+def train_models():
+    try:
+        selected_models = request.json.get('models', [])
+        if not selected_models:
+            return jsonify({'error': 'No models selected'}), 400
+        
+        results = detector.train_selected_models(X, y, selected_models)
+        
+        # Format results for frontend
+        formatted_results = {}
+        for model_name, metrics in results.items():
+            formatted_results[model_name] = {
+                'train_accuracy': round(metrics['train_accuracy'], 4),
+                'test_accuracy': round(metrics['test_accuracy'], 4),
+                'train_precision': round(metrics['train_precision'], 4),
+                'test_precision': round(metrics['test_precision'], 4),
+                'train_recall': round(metrics['train_recall'], 4),
+                'test_recall': round(metrics['test_recall'], 4),
+                'train_f1': round(metrics['train_f1'], 4),
+                'test_f1': round(metrics['test_f1'], 4),
+                'train_auc': round(metrics['train_auc'], 4),
+                'test_auc': round(metrics['test_auc'], 4)
+            }
+        
+        detector.save_models()
+        
+        return jsonify({
+            'results': formatted_results,
+            'dataset_info': detector.dataset_info,
+            'training_samples': len(detector.y_train),
+            'testing_samples': len(detector.y_test)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        data = request.json
+        model_name = data.get('model', 'Random Forest')
         features = []
+        
         for feature in detector.feature_names:
-            value = float(request.json.get(feature, 0))
+            value = float(data.get(feature, 0))
             features.append(value)
         
-        prediction, probability = detector.predict(features)
+        prediction, probability = detector.predict_with_model(features, model_name)
+        
+        if prediction is None:
+            return jsonify({'error': f'Model {model_name} not trained'}), 400
         
         return jsonify({
+            'model': model_name,
             'prediction': int(prediction),
             'probability': {
                 'healthy': float(probability[0]),
