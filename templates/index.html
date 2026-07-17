@@ -3,35 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parkinson's ML Detection</title>
+    <title>Parkinson's Disease Detection System</title>
+    <!-- Import Outfit & Inter fonts for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #4caf50;
-            --error-color: #f44336;
-            --warning-color: #ff9800;
-            --accent-hover: #5a67d8;
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+
+            /* Neutral Theme Variables (Light Mode Default) */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --input-bg: #f8fafc;
+            --input-focus-border: #6366f1;
             
-            /* Light theme */
-            --bg-light: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --container-bg-light: rgba(255, 255, 255, 0.95);
-            --text-primary-light: #333;
-            --text-secondary-light: #666;
-            --input-bg-light: white;
-            --input-border-light: #e0e0e0;
-            --card-bg-light: white;
-            --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.1);
-            
-            /* Dark theme */
-            --bg-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --container-bg-dark: rgba(30, 30, 50, 0.95);
-            --text-primary-dark: #e0e0e0;
-            --text-secondary-dark: #b0b0b0;
-            --input-bg-dark: #2a2a3e;
-            --input-border-dark: #4a4a6e;
-            --card-bg-dark: #2a2a3e;
-            --shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.3);
+            /* Accent & Semantic Colors */
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-light: rgba(79, 70, 229, 0.08);
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.08);
+            --error: #ef4444;
+            --error-light: rgba(239, 68, 68, 0.08);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05), 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        /* Dark Mode Theme Variables */
+        body.dark-mode {
+            --bg-page: #0b0f19;
+            --bg-card: #151c2c;
+            --border-color: #222f47;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --input-bg: #0b0f19;
+            --input-focus-border: #818cf8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.15);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.45);
         }
 
         * {
@@ -41,459 +60,155 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-light);
+            font-family: var(--font-body);
+            background-color: var(--bg-page);
+            color: var(--text-main);
             min-height: 100vh;
-            transition: all 0.3s ease;
-            color: var(--text-primary-light);
-        }
-
-        body.dark-mode {
-            background: var(--bg-dark);
-            color: var(--text-primary-dark);
+            line-height: 1.5;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1300px;
             margin: 0 auto;
-            padding: 15px;
-            min-height: 100vh;
+            padding: 32px 24px;
             display: flex;
             flex-direction: column;
+            gap: 24px;
         }
 
+        /* Header Styling */
         .header {
-            background: var(--container-bg-light);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: var(--shadow-light);
-            padding: 15px 20px;
-            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .header {
-            background: var(--container-bg-dark);
-            box-shadow: var(--shadow-dark);
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .header-content h1 {
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 1.8em;
-            margin-bottom: 5px;
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            margin-bottom: 4px;
         }
 
         .header-content p {
-            font-size: 0.9em;
-            color: var(--text-secondary-light);
-            transition: color 0.3s ease;
-        }
-
-        body.dark-mode .header-content p {
-            color: var(--text-secondary-dark);
+            font-size: 14px;
+            color: var(--text-muted);
         }
 
         .theme-toggle {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 16px;
             cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .theme-toggle:hover {
-            background: var(--accent-hover);
-            transform: scale(1.1);
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .card {
-            background: var(--container-bg-light);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: var(--shadow-light);
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .card {
-            background: var(--container-bg-dark);
-            box-shadow: var(--shadow-dark);
-        }
-
-        .card-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .model-selection {
-            margin-bottom: 15px;
-        }
-
-        .model-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .model-checkbox {
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 10px;
-            background: var(--card-bg-light);
-            border: 2px solid var(--input-border-light);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85em;
+            transition: all 0.2s ease;
         }
 
-        body.dark-mode .model-checkbox {
-            background: var(--card-bg-dark);
-            border-color: var(--input-border-dark);
+        .theme-toggle:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+            background-color: var(--input-bg);
         }
 
-        .model-checkbox:hover {
-            border-color: var(--primary-color);
-        }
-
-        .model-checkbox.selected {
-            border-color: var(--primary-color);
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .model-checkbox input[type="checkbox"] {
-            margin: 0;
-        }
-
-        .input-section {
-            flex: 1;
-        }
-
-        .input-grid {
+        /* Main Grid Layout */
+        .main-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 8px;
-            max-height: 350px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid var(--input-border-light);
-            border-radius: 8px;
-            background: var(--card-bg-light);
-            margin-bottom: 15px;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            align-items: start;
         }
 
-        body.dark-mode .input-grid {
-            border-color: var(--input-border-dark);
-            background: var(--card-bg-dark);
-        }
-
-        .input-group {
+        .left-panel, .right-panel {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 24px;
         }
 
-        .input-group label {
+        /* Card Component */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            transition: all 0.25s ease;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
             font-weight: 600;
-            font-size: 0.7em;
-            color: var(--text-primary-light);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            letter-spacing: -0.2px;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
         }
 
-        body.dark-mode .input-group label {
-            color: var(--text-primary-dark);
-        }
-
-        .input-group input {
-            padding: 6px 8px;
-            border: 1px solid var(--input-border-light);
-            border-radius: 4px;
-            font-size: 0.8em;
-            background: var(--input-bg-light);
-            color: var(--text-primary-light);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .input-group input {
-            border-color: var(--input-border-dark);
-            background: var(--input-bg-dark);
-            color: var(--text-primary-dark);
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
+        /* Form Inputs & Controls */
         .control-buttons {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
         .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9em;
-            font-weight: 600;
+            font-family: var(--font-body);
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: var(--input-bg);
+            border-color: var(--text-muted);
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            color: white;
+            background-color: var(--accent);
+            color: #ffffff;
+            border-color: var(--accent);
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #666;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
         }
 
         .btn-success {
-            background: var(--success-color);
-            color: white;
+            background-color: var(--success);
+            color: #ffffff;
+            border-color: var(--success);
         }
 
         .btn-success:hover {
-            background: #45a049;
-        }
-
-        .results-section {
-            display: none;
-        }
-
-        .results-grid {
-            display: grid;
-            gap: 10px;
-        }
-
-        .result-card {
-            background: var(--card-bg-light);
-            border-left: 4px solid var(--primary-color);
-            border-radius: 6px;
-            padding: 12px;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .result-card {
-            background: var(--card-bg-dark);
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .model-name {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .accuracy-badge {
-            background: var(--success-color);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 8px;
-            font-size: 0.8em;
-        }
-
-        .metric {
-            text-align: center;
-        }
-
-        .metric-label {
-            color: var(--text-secondary-light);
-            font-size: 0.7em;
-            text-transform: uppercase;
-        }
-
-        body.dark-mode .metric-label {
-            color: var(--text-secondary-dark);
-        }
-
-        .metric-value {
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        .prediction-section {
-            display: none;
-        }
-
-        .prediction-result {
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .prediction-healthy {
-            background: rgba(76, 175, 80, 0.1);
-            border: 2px solid var(--success-color);
-            color: var(--success-color);
-        }
-
-        .prediction-parkinsons {
-            background: rgba(244, 67, 54, 0.1);
-            border: 2px solid var(--error-color);
-            color: var(--error-color);
-        }
-
-        .probability-bars {
-            margin: 10px 0;
-        }
-
-        .probability-item {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            gap: 10px;
-        }
-
-        .probability-label {
-            min-width: 80px;
-            font-size: 0.9em;
-        }
-
-        .probability-bar {
-            flex: 1;
-            height: 12px;
-            background: var(--input-border-light);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        body.dark-mode .probability-bar {
-            background: var(--input-border-dark);
-        }
-
-        .probability-fill {
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-
-        .probability-healthy {
-            background: var(--success-color);
-        }
-
-        .probability-parkinsons {
-            background: var(--error-color);
-        }
-
-        .probability-value {
-            min-width: 50px;
-            text-align: right;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-
-        .dataset-info {
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-        }
-
-        .dataset-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            font-size: 0.8em;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 3px solid var(--input-border-light);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        body.dark-mode .spinner {
-            border-color: var(--input-border-dark);
-            border-top-color: var(--primary-color);
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            opacity: 0.9;
         }
 
         .file-input-wrapper {
@@ -507,46 +222,361 @@
             left: -9999px;
         }
 
-        .status-message {
-            margin-top: 10px;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
+        /* Inputs Grid */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Scrollbar styling */
+        .input-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .input-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .input-grid::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-family: var(--font-body);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .input-group input {
+            font-family: var(--font-body);
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+
+        /* Model Configuration Panel */
+        .model-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .model-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .model-checkbox:hover {
+            background-color: var(--input-bg);
+            border-color: var(--text-muted);
+        }
+
+        .model-checkbox.selected {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+        }
+
+        .model-checkbox input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        select {
+            font-family: var(--font-body);
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            font-size: 13px;
+            margin-top: 4px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        select:focus {
+            border-color: var(--input-focus-border);
+        }
+
+        /* Results & Metrics */
+        .results-section, .prediction-section {
+            display: none;
+        }
+
+        .results-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .model-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .accuracy-badge {
+            background-color: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
         }
 
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 2px;
+        }
+
+        /* Prediction Card Details */
+        .prediction-result {
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .prediction-healthy {
+            background-color: var(--success-light);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .prediction-parkinsons {
+            background-color: var(--error-light);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .prediction-result h3 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .prediction-result p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .prediction-result.prediction-healthy p,
+        .prediction-result.prediction-parkinsons p {
+            color: inherit;
+            opacity: 0.85;
+        }
+
+        .probability-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .probability-item {
+            display: grid;
+            grid-template-columns: 100px 1fr 60px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .probability-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .probability-bar {
+            height: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .probability-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .probability-healthy {
+            background-color: var(--success);
+        }
+
+        .probability-parkinsons {
+            background-color: var(--error);
+        }
+
+        .probability-value {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Dataset summary grid */
+        .dataset-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stat-item span:first-child {
+            color: var(--text-muted);
+        }
+
+        .stat-item span:last-child {
+            font-weight: 600;
+        }
+
+        /* Spinner & Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .spinner {
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Status Toast Message */
+        .status-message {
+            margin-top: 16px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+            text-align: left;
+            animation: fadeIn 0.2s ease;
+        }
+
         .status-success {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
+            background-color: var(--success-light);
+            color: var(--success);
+            border: 1px solid var(--success);
         }
 
         .status-error {
-            background: rgba(244, 67, 54, 0.1);
-            color: var(--error-color);
-            border: 1px solid var(--error-color);
+            background-color: var(--error-light);
+            color: var(--error);
+            border: 1px solid var(--error);
         }
 
-        #predictionModel {
-            width: 100%;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid var(--input-border-light);
-            background: var(--input-bg-light);
-            color: var(--text-primary-light);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        body.dark-mode #predictionModel {
-            border-color: var(--input-border-dark);
-            background: var(--input-bg-dark);
-            color: var(--text-primary-dark);
-        }
-
+        /* Responsive Breakpoints */
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
-            
             .right-panel {
                 order: -1;
             }
@@ -554,26 +584,16 @@
 
         @media (max-width: 768px) {
             .container {
-                padding: 10px;
+                padding: 16px;
             }
-            
             .header {
                 flex-direction: column;
-                gap: 10px;
-                text-align: center;
+                align-items: flex-start;
+                gap: 16px;
             }
-            
-            .model-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .input-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                max-height: 250px;
-            }
-            
-            .control-buttons {
-                flex-direction: column;
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
             }
         }
     </style>
@@ -582,112 +602,102 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>🧠 Parkinson's ML Detection</h1>
-                <p>Advanced AI analysis using multiple machine learning models</p>
+                <h1>Parkinson's Disease Detection System</h1>
+                <p>Advanced diagnostic assistant using optimized machine learning models</p>
             </div>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
-                <span id="themeIcon">🌙</span>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Color Theme">
+                Theme: <span id="themeIcon">Light</span>
             </button>
         </div>
 
         <div class="main-content">
             <div class="left-panel">
-                <div class="card input-section">
-                    <div class="card-title">
-                        📊 Voice Features Input
-                    </div>
+                <div class="card">
+                    <div class="card-title">Vocal Biomarker Inputs</div>
                     
-                    <div class="control-buttons" style="margin-bottom: 15px;">
-                        <button class="btn btn-secondary" onclick="loadSampleData('healthy')">Healthy Sample</button>
-                        <button class="btn btn-secondary" onclick="loadSampleData('parkinsons')">Parkinson's Sample</button>
+                    <div class="control-buttons">
+                        <button class="btn" onclick="loadSampleData('healthy')">Healthy Sample</button>
+                        <button class="btn" onclick="loadSampleData('parkinsons')">Parkinson's Sample</button>
                         <div class="file-input-wrapper">
                             <input type="file" id="fileInput" accept=".csv,.json,.txt" onchange="loadDataFromFile(event)">
-                            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">Load File</button>
+                            <button class="btn" onclick="document.getElementById('fileInput').click()">Load File</button>
                         </div>
-                        <button class="btn btn-secondary" onclick="clearInputs()">Clear All</button>
+                        <button class="btn" onclick="clearInputs()">Clear All</button>
                     </div>
                     
                     <div class="input-grid" id="inputGrid">
-                        <!-- Input fields will be populated by JavaScript -->
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <div class="card results-section" id="modelResults">
-                    <div class="card-title">
-                        📈 Model Performance Results
-                    </div>
+                    <div class="card-title">Model Performance Metrics</div>
                     <div class="loading" id="trainingLoading">
                         <div class="spinner"></div>
                         <p>Training models...</p>
                     </div>
                     <div class="results-grid" id="resultsGrid">
-                        <!-- Results will be populated by JavaScript -->
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <div class="card prediction-section" id="predictionResults">
-                    <div class="card-title">
-                        🎯 Prediction Results
-                    </div>
+                    <div class="card-title">Prediction Results</div>
                     <div class="prediction-result" id="predictionResult">
-                        <!-- Prediction will be shown here -->
+                        <!-- Populated by JavaScript -->
                     </div>
                     <div class="probability-bars" id="probabilityBars">
-                        <!-- Probability bars will be shown here -->
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
             </div>
 
             <div class="right-panel">
                 <div class="card">
-                    <div class="card-title">
-                        🤖 Model Selection
-                    </div>
+                    <div class="card-title">Model Configuration</div>
                     <div class="model-grid" id="modelSelection">
-                        <!-- Model checkboxes will be populated by JavaScript -->
+                        <!-- Populated by JavaScript -->
                     </div>
-                    <button class="btn btn-success" onclick="trainModels()" style="width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-success" onclick="trainModels()" style="width: 100%; margin-bottom: 12px;">
                         Train Selected Models
                     </button>
-                    <div style="margin-bottom: 15px;">
-                        <label for="predictionModel" style="display: block; margin-bottom: 5px; font-weight: 600;">Prediction Model:</label>
-                        <select id="predictionModel" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--input-border-light);">
+                    <div>
+                        <label for="predictionModel" style="display: block; font-size: 12px; font-weight: 500; color: var(--text-muted);">Prediction Model</label>
+                        <select id="predictionModel">
                             <option value="">Select trained model</option>
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="predict()" style="width: 100%;">
-                        🔍 Predict
+                        Run Prediction
                     </button>
                 </div>
 
                 <div class="card">
-                    <div class="card-title">
-                        📊 Dataset Info
-                    </div>
+                    <div class="card-title">Dataset Summary</div>
                     <div class="dataset-info" id="datasetInfo">
                         <div class="dataset-stats">
                             <div class="stat-item">
-                                <span>Total Samples:</span>
+                                <span>Total Samples</span>
                                 <span id="totalSamples">-</span>
                             </div>
                             <div class="stat-item">
-                                <span>Healthy:</span>
+                                <span>Healthy</span>
                                 <span id="healthySamples">-</span>
                             </div>
                             <div class="stat-item">
-                                <span>Parkinson's:</span>
+                                <span>Parkinson's</span>
                                 <span id="parkinsonsSamples">-</span>
                             </div>
                             <div class="stat-item">
-                                <span>Features:</span>
+                                <span>Biomarkers</span>
                                 <span id="featureCount">22</span>
                             </div>
                             <div class="stat-item">
-                                <span>Training Set:</span>
+                                <span>Training Set</span>
                                 <span id="trainingSamples">-</span>
                             </div>
                             <div class="stat-item">
-                                <span>Test Set:</span>
+                                <span>Test Set</span>
                                 <span id="testingSamples">-</span>
                             </div>
                         </div>
@@ -706,10 +716,10 @@
             body.classList.toggle('dark-mode');
 
             if (body.classList.contains('dark-mode')) {
-                themeIcon.textContent = '☀️';
+                themeIcon.textContent = 'Dark';
                 localStorage.setItem('theme', 'dark');
             } else {
-                themeIcon.textContent = '🌙';
+                themeIcon.textContent = 'Light';
                 localStorage.setItem('theme', 'light');
             }
         }
@@ -721,9 +731,9 @@
 
             if (savedTheme === 'dark') {
                 body.classList.add('dark-mode');
-                themeIcon.textContent = '☀️';
+                themeIcon.textContent = 'Dark';
             } else {
-                themeIcon.textContent = '🌙';
+                themeIcon.textContent = 'Light';
             }
         }
 
@@ -897,7 +907,7 @@
                 resultCard.innerHTML = `
                     <div class="result-header">
                         <span class="model-name">${modelName}</span>
-                        <span class="accuracy-badge">${(metrics.test_accuracy * 100).toFixed(1)}%</span>
+                        <span class="accuracy-badge">${(metrics.test_accuracy * 100).toFixed(1)}% Accuracy</span>
                     </div>
                     <div class="metrics-grid">
                         <div class="metric">
@@ -1010,7 +1020,7 @@
             const isHealthy = result.prediction === 0;
             predictionResult.className = `prediction-result ${isHealthy ? 'prediction-healthy' : 'prediction-parkinsons'}`;
             predictionResult.innerHTML = `
-                <h3>${isHealthy ? '✅ Healthy' : '⚠️ Parkinson\'s Detected'}</h3>
+                <h3>${isHealthy ? 'Healthy' : 'Parkinson\'s Detected'}</h3>
                 <p>Model: ${result.model}</p>
                 <p>Confidence: ${(result.confidence * 100).toFixed(1)}%</p>
             `;
@@ -1018,14 +1028,14 @@
             // Show probability bars
             probabilityBars.innerHTML = `
                 <div class="probability-item">
-                    <span class="probability-label">Healthy:</span>
+                    <span class="probability-label">Healthy</span>
                     <div class="probability-bar">
                         <div class="probability-fill probability-healthy" style="width: ${result.probability.healthy * 100}%"></div>
                     </div>
                     <span class="probability-value">${(result.probability.healthy * 100).toFixed(1)}%</span>
                 </div>
                 <div class="probability-item">
-                    <span class="probability-label">Parkinson's:</span>
+                    <span class="probability-label">Parkinson's</span>
                     <div class="probability-bar">
                         <div class="probability-fill probability-parkinsons" style="width: ${result.probability.parkinsons * 100}%"></div>
                     </div>
@@ -1036,6 +1046,7 @@
             predictionResults.style.display = 'block';
         }
 
+        // Helper to load sample dataset
         function loadSampleData(type) {
             const data = sampleData[type];
             features.forEach(feature => {
@@ -1047,6 +1058,7 @@
             showStatus(`Loaded ${type} sample data`, 'success');
         }
 
+        // Clear all inputs
         function clearInputs() {
             features.forEach(feature => {
                 const input = document.getElementById(feature);
@@ -1055,7 +1067,6 @@
                 }
             });
             
-            // Clear results
             document.getElementById('modelResults').style.display = 'none';
             document.getElementById('predictionResults').style.display = 'none';
             
@@ -1136,7 +1147,6 @@
         }
 
         function showStatus(message, type) {
-            // Remove existing status messages
             const existing = document.querySelector('.status-message');
             if (existing) {
                 existing.remove();
@@ -1146,11 +1156,9 @@
             statusDiv.className = `status-message status-${type}`;
             statusDiv.textContent = message;
 
-            // Add to the first card in right panel
             const rightPanel = document.querySelector('.right-panel .card');
             rightPanel.appendChild(statusDiv);
 
-            // Auto remove after 5 seconds
             setTimeout(() => {
                 if (statusDiv.parentNode) {
                     statusDiv.remove();
@@ -1158,7 +1166,6 @@
             }, 5000);
         }
 
-        // Initialize the application when the page loads
         window.addEventListener('load', initializeApp);
     </script>
 </body>

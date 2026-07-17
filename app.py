@@ -15,7 +15,9 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import io
 
-app = Flask(__name__)
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 class ParkinsonsDetector:
     def __init__(self):
@@ -108,23 +110,45 @@ class ParkinsonsDetector:
         return results
     
     def save_models(self, filename='parkinsons_models.pkl'):
-        with open(filename, 'wb') as f:
-            pickle.dump({
-                'models': self.trained_models, 
-                'scaler': self.scaler, 
-                'features': self.feature_names,
-                'dataset_info': self.dataset_info
-            }, f)
+        # Try primary filename first, then fallback to /tmp
+        paths_to_try = [filename]
+        if not filename.startswith('/tmp/'):
+            paths_to_try.append(os.path.join('/tmp', os.path.basename(filename)))
+            
+        for path in paths_to_try:
+            try:
+                with open(path, 'wb') as f:
+                    pickle.dump({
+                        'models': self.trained_models, 
+                        'scaler': self.scaler, 
+                        'features': self.feature_names,
+                        'dataset_info': self.dataset_info
+                    }, f)
+                print(f"Successfully saved models to: {path}")
+                return True
+            except Exception as e:
+                print(f"Could not save models to {path}: {e}")
+        return False
     
     def load_models(self, filename='parkinsons_models.pkl'):
-        if os.path.exists(filename):
-            with open(filename, 'rb') as f:
-                data = pickle.load(f)
-                self.trained_models = data.get('models', {})
-                self.scaler = data['scaler']
-                self.feature_names = data['features']
-                self.dataset_info = data.get('dataset_info', {})
-            return True
+        # Try primary filename first, then check /tmp
+        paths_to_try = [filename]
+        if not filename.startswith('/tmp/'):
+            paths_to_try.append(os.path.join('/tmp', os.path.basename(filename)))
+            
+        for path in paths_to_try:
+            if os.path.exists(path):
+                try:
+                    with open(path, 'rb') as f:
+                        data = pickle.load(f)
+                        self.trained_models = data.get('models', {})
+                        self.scaler = data['scaler']
+                        self.feature_names = data['features']
+                        self.dataset_info = data.get('dataset_info', {})
+                    print(f"Successfully loaded models from: {path}")
+                    return True
+                except Exception as e:
+                    print(f"Error loading models from {path}: {e}")
         return False
     
     def predict_with_model(self, features, model_name):
